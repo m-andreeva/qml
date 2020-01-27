@@ -41,9 +41,9 @@ from .slatm import get_sbot
 def vector_to_matrix(v):
     """ Converts a representation from 1D vector to 2D square matrix.
     :param v: 1D input representation.
-    :type v: numpy array 
+    :type v: numpy array
     :return: Square matrix representation.
-    :rtype: numpy array 
+    :rtype: numpy array
     """
 
     if not (np.sqrt(8*v.shape[0]+1) == int(np.sqrt(8*v.shape[0]+1))):
@@ -66,7 +66,7 @@ def vector_to_matrix(v):
             index += 1
     return M
 
-def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm"):
+def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm", decay= "default"):
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
         A matrix :math:`M` is constructed with elements
@@ -105,18 +105,25 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
         :return: 1D representation - shape (size(size+1)/2,)
         :rtype: numpy array
     """
-
-    if (sorting == "row-norm"):
-        return fgenerate_coulomb_matrix(nuclear_charges, \
+    if (decay == "r6"):
+        return fgenerate_unsorted_coulomb_matrix_r6(nuclear_charges, \
             coordinates, size)
 
-    elif (sorting == "unsorted"):
-        return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
+    if (decay == "exp"):
+        return fgenerate_unsorted_coulomb_matrix_exp(nuclear_charges, \
             coordinates, size)
+    elif (decay == "default"):
+        if (sorting == "row-norm"):
+            return fgenerate_coulomb_matrix(nuclear_charges, \
+                coordinates, size)
 
-    else:
-        print("ERROR: Unknown sorting scheme requested")
-        raise SystemExit
+        elif (sorting == "unsorted"):
+            return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
+                coordinates, size)
+
+        else:
+            print("ERROR: Unknown sorting scheme requested")
+            raise SystemExit
 
 def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "distance",
             central_cutoff = 1e6, central_decay = -1, interaction_cutoff = 1e6, interaction_decay = -1,
@@ -143,7 +150,7 @@ def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sort
               \\begin{cases}
                  1 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
                  \\tfrac{1}{2} \\big(1 + \\cos\\big(\\pi \\tfrac{\\|{\\bf R}_{i} - {\\bf R}_{j} \\|
-                    - r + \Delta r}{\Delta r} \\big)\\big)     
+                    - r + \Delta r}{\Delta r} \\big)\\big)
                     & \\text{if } r - \Delta r < \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
                  0 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| > r
               \\end{cases},
@@ -225,7 +232,7 @@ def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sort
 
     elif (sorting == "distance"):
         return fgenerate_atomic_coulomb_matrix(indices, nindices, nuclear_charges,
-            coordinates, nuclear_charges.size, size, 
+            coordinates, nuclear_charges.size, size,
             central_cutoff, central_decay, interaction_cutoff, interaction_decay)
 
     else:
@@ -274,7 +281,7 @@ def generate_bob(nuclear_charges, coordinates, atomtypes, size=23, asize = {"O":
             :math:`\\tfrac{1}{2} Z_{I}^{2.4}`,
 
         with :math:`Z_{i}` being the nuclear charge of element :math:`i`
-        The interaction between atom :math:`i` of element :math:`I` and 
+        The interaction between atom :math:`i` of element :math:`I` and
         atom :math:`j` of element :math:`J` is given by
 
             :math:`\\frac{Z_{I}Z_{J}}{\\| {\\bf R}_{i} - {\\bf R}_{j}\\|}`

@@ -50,7 +50,7 @@ end subroutine get_indices
 end module representations
 
 subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, nmax, cm)
-    
+
     implicit none
 
     double precision, dimension(:), intent(in) :: atomic_charges
@@ -203,6 +203,72 @@ subroutine fgenerate_unsorted_coulomb_matrix(atomic_charges, coordinates, nmax, 
     deallocate(pair_distance_matrix)
 
 end subroutine fgenerate_unsorted_coulomb_matrix
+
+
+subroutine fgenerate_unsorted_coulomb_matrix_r6(atomic_charges, coordinates, nmax, cm)
+
+    implicit none
+
+    double precision, dimension(:), intent(in) :: atomic_charges
+    double precision, dimension(:,:), intent(in) :: coordinates
+
+    integer, intent(in) :: nmax
+
+    double precision, dimension(((nmax + 1) * nmax) / 2), intent(out):: cm
+
+    double precision :: pair_norm
+
+    double precision, allocatable, dimension(:,:) :: pair_distance_matrix
+
+    integer :: i, j, m, n, idx
+    integer :: natoms
+
+    if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
+        write(*,*) "ERROR: Coulomb matrix generation"
+        write(*,*) size(coordinates, dim=1), "coordinates, but", &
+            & size(atomic_charges, dim=1), "atom_types!"
+        stop
+    else
+        natoms = size(atomic_charges, dim=1)
+    endif
+
+    ! Allocate temporary
+    allocate(pair_distance_matrix(natoms,natoms))
+
+    !$OMP PARALLEL DO PRIVATE(pair_norm)
+    do i = 1, natoms
+        pair_norm = 0.5d0 * atomic_charges(i) ** 2.4d0
+        pair_distance_matrix(i, i) = pair_norm
+    enddo
+    !$OMP END PARALLEL DO
+
+    !$OMP PARALLEL DO PRIVATE(pair_norm)
+    do i = 1, natoms
+        do j = i+1, natoms
+            pair_norm = atomic_charges(i) * atomic_charges(j) &
+                & / (sqrt(sum((coordinates(j,:) - coordinates(i,:))**2))**6)
+
+            pair_distance_matrix(i, j) = pair_norm
+            pair_distance_matrix(j, i) = pair_norm
+        enddo
+    enddo
+    !$OMP END PARALLEL DO
+
+
+    cm = 0.0d0
+    !$OMP PARALLEL DO PRIVATE(idx)
+    do m = 1, natoms
+        idx = (m*m+m)/2 - m
+        do n = 1, m
+            cm(idx+n) = pair_distance_matrix(m, n)
+        enddo
+    enddo
+    !$OMP END PARALLEL DO
+
+    ! Clean up
+    deallocate(pair_distance_matrix)
+
+end subroutine fgenerate_unsorted_coulomb_matrix_r6
 
 subroutine fgenerate_local_coulomb_matrix(central_atom_indices, central_natoms, &
         & atomic_charges, coordinates, natoms, nmax, cent_cutoff, cent_decay, &
