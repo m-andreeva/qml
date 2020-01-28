@@ -71,7 +71,7 @@ def vector_to_matrix(v):
             index += 1
     return M
 
-def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm"):
+def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm", decay = "default"):
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
         A matrix :math:`M` is constructed with elements
