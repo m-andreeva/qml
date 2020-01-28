@@ -27,6 +27,8 @@ import itertools as itl
 
 from .frepresentations import fgenerate_coulomb_matrix
 from .frepresentations import fgenerate_unsorted_coulomb_matrix
+from .frepresentations import fgenerate_unsorted_coulomb_matrix_r6
+from .frepresentations import fgenerate_unsorted_coulomb_matrix_exp
 from .frepresentations import fgenerate_local_coulomb_matrix
 from .frepresentations import fgenerate_atomic_coulomb_matrix
 from .frepresentations import fgenerate_eigenvalue_coulomb_matrix
@@ -44,9 +46,9 @@ from .facsf import fgenerate_fchl_acsf, fgenerate_fchl_acsf_and_gradients
 def vector_to_matrix(v):
     """ Converts a representation from 1D vector to 2D square matrix.
     :param v: 1D input representation.
-    :type v: numpy array 
+    :type v: numpy array
     :return: Square matrix representation.
-    :rtype: numpy array 
+    :rtype: numpy array
     """
 
     if not (np.sqrt(8*v.shape[0]+1) == int(np.sqrt(8*v.shape[0]+1))):
@@ -109,17 +111,25 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
         :rtype: numpy array
     """
 
-    if (sorting == "row-norm"):
-        return fgenerate_coulomb_matrix(nuclear_charges, \
+if (decay == "r6"):
+        return fgenerate_unsorted_coulomb_matrix_r6(nuclear_charges, \
             coordinates, size)
 
-    elif (sorting == "unsorted"):
-        return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
+    if (decay == "exp"):
+        return fgenerate_unsorted_coulomb_matrix_exp(nuclear_charges, \
             coordinates, size)
+    elif (decay == "default"):
+        if (sorting == "row-norm"):
+            return fgenerate_coulomb_matrix(nuclear_charges, \
+                coordinates, size)
 
-    else:
-        print("ERROR: Unknown sorting scheme requested")
-        raise SystemExit
+        elif (sorting == "unsorted"):
+            return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
+                coordinates, size)
+
+        else:
+            print("ERROR: Unknown sorting scheme requested")
+            raise SystemExit
 
 def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "distance",
             central_cutoff = 1e6, central_decay = -1, interaction_cutoff = 1e6, interaction_decay = -1,
@@ -146,7 +156,7 @@ def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sort
               \\begin{cases}
                  1 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
                  \\tfrac{1}{2} \\big(1 + \\cos\\big(\\pi \\tfrac{\\|{\\bf R}_{i} - {\\bf R}_{j} \\|
-                    - r + \Delta r}{\Delta r} \\big)\\big)     
+                    - r + \Delta r}{\Delta r} \\big)\\big)
                     & \\text{if } r - \Delta r < \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
                  0 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| > r
               \\end{cases},
@@ -228,7 +238,7 @@ def generate_atomic_coulomb_matrix(nuclear_charges, coordinates, size = 23, sort
 
     elif (sorting == "distance"):
         return fgenerate_atomic_coulomb_matrix(indices, nindices, nuclear_charges,
-            coordinates, nuclear_charges.size, size, 
+            coordinates, nuclear_charges.size, size,
             central_cutoff, central_decay, interaction_cutoff, interaction_decay)
 
     else:
@@ -277,7 +287,7 @@ def generate_bob(nuclear_charges, coordinates, atomtypes, size=23, asize = {"O":
             :math:`\\tfrac{1}{2} Z_{I}^{2.4}`,
 
         with :math:`Z_{i}` being the nuclear charge of element :math:`i`
-        The interaction between atom :math:`i` of element :math:`I` and 
+        The interaction between atom :math:`i` of element :math:`I` and
         atom :math:`j` of element :math:`J` is given by
 
             :math:`\\frac{Z_{I}Z_{J}}{\\| {\\bf R}_{i} - {\\bf R}_{j}\\|}`
@@ -632,11 +642,11 @@ def generate_fchl_acsf(nuclear_charges, coordinates, elements = [1,6,7,8,16],
         two_body_decay=1.8, three_body_decay=0.57, three_body_weight=13.4,
         pad=False, gradients=False):
     """
-    
+
     FCHL-ACSF
 
     Reasonable hyperparameters:
-    
+
     Sigma ~ 21.0
     Lambda ~ 1e-8
     Max singular value ~ 1e-12
@@ -651,7 +661,7 @@ def generate_fchl_acsf(nuclear_charges, coordinates, elements = [1,6,7,8,16],
     :type nRs2: integer
     :param nRs3: Number of gaussian basis functions in the three-body radial part
     :type nRs3: integer
-    :param nFourier: Order of Fourier expansion 
+    :param nFourier: Order of Fourier expansion
     :type nFourier: integer
     :param eta2: Precision in the gaussian basis functions in the two-body terms
     :type eta2: float
@@ -678,7 +688,7 @@ def generate_fchl_acsf(nuclear_charges, coordinates, elements = [1,6,7,8,16],
 
     descr_size = n_elements * nRs2 + (n_elements * (n_elements + 1)) * nRs3* nFourier
 
-    # Normalization constant for three-body 
+    # Normalization constant for three-body
     three_body_weight = np.sqrt(eta3/np.pi) * three_body_weight
 
 
@@ -719,4 +729,3 @@ def generate_fchl_acsf(nuclear_charges, coordinates, elements = [1,6,7,8,16],
             return rep_pad, grad_pad
         else:
             return rep, grad
-
