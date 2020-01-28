@@ -111,11 +111,11 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
         :rtype: numpy array
     """
 
-if (decay == "r6"):
+    if (decay == "r6"):
         return fgenerate_unsorted_coulomb_matrix_r6(nuclear_charges, \
             coordinates, size)
 
-    if (decay == "exp"):
+    elif (decay == "exp"):
         return fgenerate_unsorted_coulomb_matrix_exp(nuclear_charges, \
             coordinates, size)
     elif (decay == "default"):
