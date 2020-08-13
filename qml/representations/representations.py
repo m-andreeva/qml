@@ -71,7 +71,7 @@ def vector_to_matrix(v):
             index += 1
     return M
 
-def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm", decay = "default"):
+def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "row-norm", decay = "default", diagonal = True):
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
         A matrix :math:`M` is constructed with elements
@@ -106,6 +106,10 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
         :type size: integer
         :param sorting: How the atom indices are sorted ('row-norm', 'unsorted')
         :type sorting: string
+        :param decay: Decay of the distance in the denominator ('default', 'r6', 'exp')
+        :type decay: string
+        :param diagonal: Whether to return the diagonal elements of the Matrix
+        :type diagonal: boolean
 
         :return: 1D representation - shape (size(size+1)/2,)
         :rtype: numpy array
@@ -114,7 +118,6 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
     if (decay == "r6"):
         return fgenerate_unsorted_coulomb_matrix_r6(nuclear_charges, \
             coordinates, size)
-
     elif (decay == "exp"):
         return fgenerate_unsorted_coulomb_matrix_exp(nuclear_charges, \
             coordinates, size)
@@ -122,10 +125,13 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size = 23, sorting = "
         if (sorting == "row-norm"):
             return fgenerate_coulomb_matrix(nuclear_charges, \
                 coordinates, size)
-
         elif (sorting == "unsorted"):
-            return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
-                coordinates, size)
+            if diagonal:
+                return fgenerate_unsorted_coulomb_matrix(nuclear_charges, \
+                            coordinates, size)
+            else:
+                return fgenerate_unsorted_coulomb_matrix_nodiag(nuclear_charges, \
+                            coordinates, size)
 
         else:
             print("ERROR: Unknown sorting scheme requested")
