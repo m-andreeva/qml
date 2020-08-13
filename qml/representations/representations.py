@@ -29,6 +29,7 @@ from .frepresentations import fgenerate_coulomb_matrix
 from .frepresentations import fgenerate_unsorted_coulomb_matrix
 from .frepresentations import fgenerate_unsorted_coulomb_matrix_r6
 from .frepresentations import fgenerate_unsorted_coulomb_matrix_exp
+from .frepresentations import fgenerate_unsorted_coulomb_matrix_nodiag
 from .frepresentations import fgenerate_local_coulomb_matrix
 from .frepresentations import fgenerate_atomic_coulomb_matrix
 from .frepresentations import fgenerate_eigenvalue_coulomb_matrix
