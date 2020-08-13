@@ -384,9 +384,9 @@ subroutine fgenerate_unsorted_coulomb_matrix_nodiag(atomic_charges, coordinates,
     cm = 0.0d0
     !$OMP PARALLEL DO PRIVATE(idx)
     do m = 2, natoms
-        idx = (m*m-m)/2 - m + 1
-        do n = 1, m
-            write(*,*) idx, m, n
+        idx = (m*m-m)/2 - m
+        do n = 1, m-1
+            write(*,*) idx+n, m, n
             cm(idx+n) = pair_distance_matrix(m, n)
         enddo
     enddo
