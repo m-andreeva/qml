@@ -340,7 +340,7 @@ subroutine fgenerate_unsorted_coulomb_matrix_nodiag(atomic_charges, coordinates,
 
     integer, intent(in) :: nmax
 
-    double precision, dimension(((nmax + 1) * nmax) / 2), intent(out):: cm
+    double precision, dimension(((nmax - 1) * nmax) / 2), intent(out):: cm
 
     double precision :: pair_norm
 
